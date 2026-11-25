@@ -218,39 +218,40 @@
   // type: "group" (stage header) or "task"
   const ROWS = [
     { type: "group", label: "Initiate" },
-    { type: "task", id: "01", task: "Confirm charter scope, ownership and deadline", owner: "PM", start: "2026-11-15", end: "2026-11-21" },
+    { type: "task", id: "01", task: "Confirm charter scope, ownership and deadline", owner: "PM", start: "2026-11-20", end: "2026-11-24", status: "completed" },
 
     { type: "group", label: "Plan" },
-    { type: "task", id: "02", task: "Confirm automation build feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27" },
-    { type: "task", id: "03", task: "Confirm course migration feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27" },
+    { type: "task", id: "02", task: "Confirm automation build feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27", status: "in-progress" },
+    { type: "task", id: "03", task: "Confirm course migration feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27", status: "in-progress" },
 
     { type: "group", label: "Create" },
-    { type: "task", id: "04", task: "Create LMS data/access structure", owner: "Operation", start: "2026-11-08", end: "2026-11-21" },
+    { type: "task", id: "04", task: "Create LMS data/access structure", owner: "Operation", start: "2026-11-11", end: "2026-11-24", status: "completed" },
 
     { type: "group", label: "Build" },
-    { type: "task", id: "05", task: "Build domain-based segmentation automation + lookup table", owner: "MOP Automation Lead", start: "2026-11-29", end: "2026-12-19" },
-    { type: "task", id: "06", task: "Build PayPro-to-TI purchase integration", owner: "MOP Automation Lead", start: "2026-11-29", end: "2026-12-19" },
-    { type: "task", id: "07", task: "Build iframe integration", owner: "MOP Automation Lead", start: "2026-11-29", end: "2026-12-19" },
+    { type: "task", id: "05", task: "Build domain-based segmentation automation + lookup table", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "in-progress" },
+    { type: "task", id: "06", task: "Build PayPro-to-TI purchase integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20" },
+    { type: "task", id: "07", task: "Build iframe integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20" },
+    { type: "task", id: "08", task: "Create new IPN URLs", owner: "MOP Automation Lead", start: "2026-12-14", end: "2026-12-20" },
 
     { type: "group", label: "Data" },
-    { type: "task", id: "08", task: "Migrate historical certification data", owner: "Operation", start: "2026-12-06", end: "2026-12-26" },
-    { type: "task", id: "10", task: "Export Workramp user data", owner: "Operation", start: "2026-12-06", end: "2026-12-26" },
+    { type: "task", id: "09", task: "Migrate historical certification data", owner: "Operation", start: "2026-12-07", end: "2026-12-20" },
+    { type: "task", id: "10", task: "Export Workramp user data", owner: "Operation", start: "2026-12-07", end: "2026-12-20" },
 
     { type: "group", label: "Content" },
-    { type: "task", id: "09", task: "Migrate course content into TI", owner: "Training", start: "2026-11-08", end: "2026-12-05" },
+    { type: "task", id: "11", task: "Migrate course content into TI", owner: "Training", start: "2026-11-19", end: "2026-12-04", status: "in-progress" },
 
     { type: "group", label: "Launch" },
-    { type: "task", id: "11", task: "Switch PayPro IPN URLs", owner: "Operation", start: "2026-12-28", end: "2026-12-29", milestone: true },
-    { type: "task", id: "14", task: "Cut over to TI and retire Workramp", owner: "MOP Automation Lead", start: "2026-12-28", end: "2026-12-29", milestone: true },
+    { type: "task", id: "12", task: "Switch PayPro IPN URLs", owner: "Operation", start: "2026-12-30", end: "2026-12-30", milestone: true },
+    { type: "task", id: "13", task: "Cut over to TI and retire Workramp", owner: "MOP Automation Lead", start: "2026-12-30", end: "2026-12-30", milestone: true },
 
     { type: "group", label: "Validate" },
-    { type: "task", id: "12", task: "Test end-to-end flows", owner: "MOP Automation Lead", start: "2026-12-20", end: "2027-01-02" },
+    { type: "task", id: "14", task: "Test end-to-end flows", owner: "MOP Automation Lead", start: "2026-12-21", end: "2026-12-30" },
 
     { type: "group", label: "Approve" },
-    { type: "task", id: "13", task: "Approve go-live readiness", owner: "MOP Delivery Owner", start: "2026-12-28", end: "2026-12-29", milestone: true },
+    { type: "task", id: "15", task: "Approve go-live readiness", owner: "MOP Delivery Owner", start: "2026-12-30", end: "2026-12-31" },
 
     { type: "group", label: "Change" },
-    { type: "task", id: "15", task: "Log/assess change requests", owner: "PM", start: "2026-11-22", end: "2027-01-15", ongoing: true },
+    { type: "task", id: "16", task: "Log/assess change requests", owner: "PM", start: "2026-11-20", end: "2027-01-02", ongoing: true, status: "in-progress" },
   ];
 
   const ROW_H = 44, GROUP_H = 28, HEADER_H = 38;
@@ -310,7 +311,7 @@
         div.innerHTML = `<div style="width:100%">${row.label}</div>`;
       } else {
         const key = row.id;
-        const st = (state[key] && state[key].status) || "not-started";
+        const st = (state[key] && state[key].status) || row.status || "not-started";
         const note = (state[key] && state[key].note) || "";
         div.className = "lp-row";
 
