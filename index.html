@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OA Migration Gantt</title>
+<style>
+  :root {
+    /* OPSWAT brand palette: https://www.opswat.com/brand/colors */
+    --bg: #F8F9F9;
+    --panel: #FFFFFF;
+    --panel-raised: #EBECEE;
+    --line: #DEE0E4;
+    --text: #141B27;
+    --text-muted: #607497;
+
+    --blue: #1D6BFC;
+    --blue-dark: #1854C3;
+    --blue-soft: #E8F0FF;
+    --blue-text: #123D8B;
+
+    --teal-soft: #E8FEFF;
+    --teal-text: #018288;
+
+    --gold-soft: #FFF8D5;
+    --gold-text: #927800;
+
+    --green-soft: #DFFFF5;
+    --green-text: #009165;
+
+    --red-soft: #FFDFDB;
+    --red-text: #A90027;
+
+    --purple-soft: #F7E5F8;
+    --purple-text: #5E1A64;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-size: 13.5px; line-height: 1.5;
+  }
+  .shell { max-width: 1500px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  header.page-head { margin-bottom: 20px; }
+  .page-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 650; letter-spacing: -0.01em; }
+  .page-head p { margin: 0; color: var(--text-muted); max-width: 70ch; }
+
+  .legend { display: flex; gap: 16px; margin: 14px 0 20px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; }
+
+  .gantt-wrap {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    overflow: hidden; display: flex;
+  }
+
+  .left-panel {
+    flex: 0 0 auto;
+    border-right: 1px solid var(--line);
+    overflow-y: hidden;
+  }
+  .right-panel {
+    flex: 1 1 auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .right-panel-inner { position: relative; }
+
+  .lp-header, .rp-header {
+    display: flex; align-items: center;
+    height: 38px; background: var(--panel-raised);
+    border-bottom: 1px solid var(--line);
+    font-size: 11.5px; font-weight: 600; color: var(--text-muted);
+  }
+  .lp-header > div, .lp-row > div {
+    padding: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: flex; align-items: center;
+  }
+  .col-id { width: 34px; flex-shrink: 0; }
+  .col-task { width: 300px; flex-shrink: 0; white-space: normal !important; line-height: 1.3; }
+  .col-owner { width: 150px; flex-shrink: 0; }
+  .col-status { width: 130px; flex-shrink: 0; }
+  .col-notes { width: 220px; flex-shrink: 0; }
+
+  .lp-row {
+    display: flex; align-items: center; height: 44px;
+    border-bottom: 1px solid var(--line);
+  }
+  .lp-row:last-child { border-bottom: none; }
+  .lp-row:hover { background: var(--panel-raised); }
+  .lp-row.group-row {
+    height: 28px; background: var(--panel-raised); font-weight: 650; font-size: 11.5px;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em;
+  }
+  .lp-row.group-row > div { padding-left: 10px; }
+
+  .task-name { font-weight: 600; }
+
+  select.status-select {
+    width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px;
+    font-size: 12px; font-weight: 600; background: var(--panel); color: var(--text);
+  }
+  select.status-select.st-not-started { background: var(--panel-raised); color: var(--text-muted); }
+  select.status-select.st-in-progress { background: var(--blue-soft); color: var(--blue-text); }
+  select.status-select.st-completed { background: var(--green-soft); color: var(--green-text); }
+  select.status-select.st-blocked { background: var(--red-soft); color: var(--red-text); }
+
+  input.notes-input {
+    width: 100%; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px;
+    font-size: 12px; background: transparent; color: var(--text);
+  }
+  input.notes-input:hover, input.notes-input:focus { border-color: var(--line); background: var(--panel); }
+  input.notes-input:focus { outline: 2px solid var(--blue); outline-offset: 0; }
+
+  .timeline-row {
+    position: relative; height: 44px; border-bottom: 1px solid var(--line);
+  }
+  .timeline-row:last-child { border-bottom: none; }
+  .timeline-row.group-row { height: 28px; background: var(--panel-raised); }
+
+  .week-grid-line {
+    position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line);
+  }
+  .week-label {
+    position: absolute; top: 0; height: 38px; display: flex; align-items: center;
+    font-size: 11px; color: var(--text-muted); padding-left: 4px; white-space: nowrap;
+  }
+  .today-line {
+    position: absolute; top: 0; width: 2px; background: var(--red-text); opacity: 0.6; z-index: 2;
+  }
+
+  .bar {
+    position: absolute; top: 9px; height: 26px; border-radius: 6px;
+    background: var(--blue-soft); border: 1.5px solid var(--blue); 
+    display: flex; align-items: center; padding: 0 8px;
+    font-size: 11px; font-weight: 600; color: var(--blue-text);
+    white-space: nowrap; overflow: hidden;
+  }
+  .bar.milestone {
+    width: 16px !important; height: 16px; top: 14px; border-radius: 4px;
+    transform: rotate(45deg); background: var(--gold-soft); border-color: var(--gold-text);
+    padding: 0;
+  }
+  .bar.ongoing { background: var(--purple-soft); border-color: var(--purple-text); color: var(--purple-text); }
+
+  .footnote { margin-top: 14px; color: var(--text-muted); font-size: 12px; max-width: 80ch; }
+  .footnote code { background: var(--panel-raised); padding: 1px 5px; border-radius: 4px; }
+
+  .bar { cursor: default; }
+
+  .gantt-tooltip {
+    position: fixed; z-index: 100; background: var(--text); color: #fff;
+    padding: 7px 11px; border-radius: 7px; font-size: 12px; line-height: 1.4;
+    pointer-events: none; opacity: 0; transition: opacity 0.1s ease;
+    box-shadow: 0 4px 14px rgba(20,27,39,0.22); max-width: 260px;
+  }
+  .gantt-tooltip.show { opacity: 1; }
+  .gantt-tooltip .tt-task { font-weight: 650; margin-bottom: 2px; }
+  .gantt-tooltip .tt-dates { color: #C7CCD5; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <header class="page-head">
+    <h1>OA Migration Gantt</h1>
+    <p>Task-level schedule for the LMS migration, grouped by stage. Status and Notes are saved in this browser only (not shared across viewers), update them as work progresses.</p>
+    <p id="editModeNotice" style="display:none; margin-top:8px; color: var(--blue-text); font-weight:600;">Edit mode is on, viewers without <code>?edit=1</code> in the URL see a read-only version.</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--panel-raised)"></span>Not started</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--blue-soft);border:1px solid var(--blue)"></span>In progress</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--green-soft);border:1px solid var(--green-text)"></span>Completed</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--red-soft);border:1px solid var(--red-text)"></span>Blocked</div>
+    <div class="legend-item"><span class="legend-swatch" style="background:var(--purple-soft);border:1px solid var(--purple-text)"></span>Ongoing task</div>
+  </div>
+
+  <div class="gantt-wrap">
+    <div class="left-panel">
+      <div class="lp-header">
+        <div class="col-id">ID</div>
+        <div class="col-task">Task</div>
+        <div class="col-owner">Owner</div>
+        <div class="col-status">Status</div>
+        <div class="col-notes">Notes</div>
+      </div>
+      <div id="leftRows"></div>
+    </div>
+    <div class="right-panel" id="rightPanel">
+      <div class="right-panel-inner" id="rightInner">
+        <div class="rp-header" id="rpHeader"></div>
+        <div id="rightRows"></div>
+      </div>
+    </div>
+  </div>
+  <div class="gantt-tooltip" id="ganttTooltip"></div>
+
+  <p class="footnote">To host: push this single file to a GitHub repo, enable GitHub Pages, then embed the Pages URL in Confluence using the <code>Embed</code> or <code>iframe</code> macro. Dates and task list are fixed in the code, edit the <code>ROWS</code> array near the top of the script to change them.</p>
+</div>
+
+<script>
+  // ---- Config: anchor date and pixel scale ----
+  const ANCHOR = new Date("2026-11-08"); // leftmost date on the chart
+  const PX_PER_DAY = 14;
+  const dayOffset = (iso) => Math.round((new Date(iso) - ANCHOR) / 86400000);
+  const x = (iso) => dayOffset(iso) * PX_PER_DAY;
+
+  const STATUS_OPTIONS = [
+    { value: "not-started", label: "Not started" },
+    { value: "in-progress", label: "In progress" },
+    { value: "completed", label: "Completed" },
+    { value: "blocked", label: "Blocked" },
+  ];
+
+  // ---- Data: one entry per visual row, in display order ----
+  // type: "group" (stage header) or "task"
+  const ROWS = [
+    { type: "group", label: "Initiate" },
+    { type: "task", id: "01", task: "Confirm charter scope, ownership and deadline", owner: "PM", start: "2026-11-15", end: "2026-11-21" },
+
+    { type: "group", label: "Plan" },
+    { type: "task", id: "02", task: "Confirm automation build feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27" },
+    { type: "task", id: "03", task: "Confirm course migration feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27" },
+
+    { type: "group", label: "Create" },
+    { type: "task", id: "04", task: "Create LMS data/access structure", owner: "Operation", start: "2026-11-08", end: "2026-11-21" },
+
+    { type: "group", label: "Build" },
+    { type: "task", id: "05", task: "Build domain-based segmentation automation + lookup table", owner: "MOP Automation Lead", start: "2026-11-29", end: "2026-12-19" },
+    { type: "task", id: "06", task: "Build PayPro-to-TI purchase integration", owner: "MOP Automation Lead", start: "2026-11-29", end: "2026-12-19" },
+    { type: "task", id: "07", task: "Build iframe integration", owner: "MOP Automation Lead", start: "2026-11-29", end: "2026-12-19" },
+
+    { type: "group", label: "Data" },
+    { type: "task", id: "08", task: "Migrate historical certification data", owner: "Operation", start: "2026-12-06", end: "2026-12-26" },
+    { type: "task", id: "10", task: "Export Workramp user data", owner: "Operation", start: "2026-12-06", end: "2026-12-26" },
+
+    { type: "group", label: "Content" },
+    { type: "task", id: "09", task: "Migrate course content into TI", owner: "Training", start: "2026-11-08", end: "2026-12-05" },
+
+    { type: "group", label: "Launch" },
+    { type: "task", id: "11", task: "Switch PayPro IPN URLs", owner: "Operation", start: "2026-12-28", end: "2026-12-29", milestone: true },
+    { type: "task", id: "14", task: "Cut over to TI and retire Workramp", owner: "MOP Automation Lead", start: "2026-12-28", end: "2026-12-29", milestone: true },
+
+    { type: "group", label: "Validate" },
+    { type: "task", id: "12", task: "Test end-to-end flows", owner: "MOP Automation Lead", start: "2026-12-20", end: "2027-01-02" },
+
+    { type: "group", label: "Approve" },
+    { type: "task", id: "13", task: "Approve go-live readiness", owner: "MOP Delivery Owner", start: "2026-12-28", end: "2026-12-29", milestone: true },
+
+    { type: "group", label: "Change" },
+    { type: "task", id: "15", task: "Log/assess change requests", owner: "PM", start: "2026-11-22", end: "2027-01-15", ongoing: true },
+  ];
+
+  const ROW_H = 44, GROUP_H = 28, HEADER_H = 38;
+
+  function fmtShort(iso) {
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+  function fmtLong(iso) {
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  const tooltipEl = document.getElementById("ganttTooltip");
+  function attachTooltip(el, row) {
+    el.addEventListener("mouseenter", () => {
+      tooltipEl.innerHTML = `<div class="tt-task">${row.task}</div><div class="tt-dates">${fmtLong(row.start)} \u2192 ${fmtLong(row.end)}</div>`;
+      tooltipEl.classList.add("show");
+    });
+    el.addEventListener("mousemove", (e) => {
+      const ttRect = tooltipEl.getBoundingClientRect();
+      let left = e.clientX + 14;
+      let top = e.clientY + 14;
+      if (left + ttRect.width > window.innerWidth - 10) left = e.clientX - ttRect.width - 14;
+      if (top + ttRect.height > window.innerHeight - 10) top = e.clientY - ttRect.height - 14;
+      tooltipEl.style.left = left + "px";
+      tooltipEl.style.top = top + "px";
+    });
+    el.addEventListener("mouseleave", () => {
+      tooltipEl.classList.remove("show");
+    });
+  }
+
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem("oa-gantt-state") || "{}"); }
+    catch (e) { return {}; }
+  }
+  function saveState(state) {
+    try { localStorage.setItem("oa-gantt-state", JSON.stringify(state)); } catch (e) {}
+  }
+  let state = loadState();
+  const EDIT_MODE = new URLSearchParams(window.location.search).get("edit") === "1";
+
+  function statusClass(v) {
+    return { "not-started": "st-not-started", "in-progress": "st-in-progress", "completed": "st-completed", "blocked": "st-blocked" }[v] || "st-not-started";
+  }
+  function statusLabel(v) {
+    const found = STATUS_OPTIONS.find(o => o.value === v);
+    return found ? found.label : "Not started";
+  }
+
+  function buildLeftPanel() {
+    const container = document.getElementById("leftRows");
+    container.innerHTML = "";
+    ROWS.forEach(row => {
+      const div = document.createElement("div");
+      if (row.type === "group") {
+        div.className = "lp-row group-row";
+        div.innerHTML = `<div style="width:100%">${row.label}</div>`;
+      } else {
+        const key = row.id;
+        const st = (state[key] && state[key].status) || "not-started";
+        const note = (state[key] && state[key].note) || "";
+        div.className = "lp-row";
+
+        const statusHtml = EDIT_MODE
+          ? `<select class="status-select ${statusClass(st)}" data-id="${key}">
+               ${STATUS_OPTIONS.map(o => `<option value="${o.value}" ${o.value === st ? "selected" : ""}>${o.label}</option>`).join("")}
+             </select>`
+          : `<span class="status-select ${statusClass(st)}" style="display:inline-block;text-align:center;">${statusLabel(st)}</span>`;
+
+        const notesHtml = EDIT_MODE
+          ? `<input class="notes-input" data-id="${key}" type="text" value="${note.replace(/"/g, "&quot;")}" placeholder="Add a note...">`
+          : `<span class="notes-input" style="display:inline-block;">${note || "—"}</span>`;
+
+        div.innerHTML = `
+          <div class="col-id">${row.id}</div>
+          <div class="col-task"><span class="task-name">${row.task}</span></div>
+          <div class="col-owner">${row.owner}</div>
+          <div class="col-status">${statusHtml}</div>
+          <div class="col-notes">${notesHtml}</div>
+        `;
+      }
+      container.appendChild(div);
+    });
+
+    if (!EDIT_MODE) return;
+
+    container.querySelectorAll(".status-select").forEach(sel => {
+      sel.addEventListener("change", () => {
+        const id = sel.dataset.id;
+        state[id] = state[id] || {};
+        state[id].status = sel.value;
+        sel.className = "status-select " + statusClass(sel.value);
+        saveState(state);
+      });
+    });
+    container.querySelectorAll(".notes-input").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const id = inp.dataset.id;
+        state[id] = state[id] || {};
+        state[id].note = inp.value;
+        saveState(state);
+      });
+    });
+  }
+
+  function buildRightPanel() {
+    const lastRow = ROWS[ROWS.length - 1];
+    const totalWidth = x(lastRow.end) + PX_PER_DAY * 10;
+    const totalDays = Math.ceil(totalWidth / PX_PER_DAY);
+
+    const header = document.getElementById("rpHeader");
+    header.style.position = "relative";
+    header.style.width = totalWidth + "px";
+    header.innerHTML = "";
+
+    for (let d = 0; d <= totalDays; d += 7) {
+      const date = new Date(ANCHOR);
+      date.setDate(date.getDate() + d);
+      const label = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const line = document.createElement("div");
+      line.className = "week-label";
+      line.style.left = (d * PX_PER_DAY) + "px";
+      line.textContent = label;
+      header.appendChild(line);
+    }
+
+    const rowsContainer = document.getElementById("rightRows");
+    rowsContainer.innerHTML = "";
+    rowsContainer.style.position = "relative";
+    rowsContainer.style.width = totalWidth + "px";
+
+    let cumulativeTop = 0;
+    ROWS.forEach(row => {
+      const h = row.type === "group" ? GROUP_H : ROW_H;
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "timeline-row" + (row.type === "group" ? " group-row" : "");
+      rowDiv.style.height = h + "px";
+
+      for (let d = 0; d <= totalDays; d += 7) {
+        const gline = document.createElement("div");
+        gline.className = "week-grid-line";
+        gline.style.left = (d * PX_PER_DAY) + "px";
+        rowDiv.appendChild(gline);
+      }
+
+      if (row.type === "task") {
+        const left = x(row.start);
+        const width = Math.max(x(row.end) - x(row.start), PX_PER_DAY);
+        const bar = document.createElement("div");
+        bar.className = "bar" + (row.milestone ? " milestone" : "") + (row.ongoing ? " ongoing" : "");
+        if (row.milestone) {
+          bar.style.left = (left + width / 2 - 8) + "px";
+        } else {
+          bar.style.left = left + "px";
+          bar.style.width = width + "px";
+          bar.textContent = fmtShort(row.start) + " \u2192 " + fmtShort(row.end);
+        }
+        attachTooltip(bar, row);
+        rowDiv.appendChild(bar);
+      }
+
+      rowsContainer.appendChild(rowDiv);
+      cumulativeTop += h;
+    });
+
+    // Today marker
+    const today = new Date();
+    const todayOffset = x(today.toISOString().slice(0,10));
+    if (todayOffset >= 0 && todayOffset <= totalWidth) {
+      const totalHeight = ROWS.reduce((sum, r) => sum + (r.type === "group" ? GROUP_H : ROW_H), 0);
+      const tline = document.createElement("div");
+      tline.className = "today-line";
+      tline.style.left = todayOffset + "px";
+      tline.style.height = (HEADER_H + totalHeight) + "px";
+      document.getElementById("rightInner").appendChild(tline);
+    }
+  }
+
+  if (EDIT_MODE) document.getElementById("editModeNotice").style.display = "block";
+  buildLeftPanel();
+  buildRightPanel();
+</script>
+
+</body>
+</html>
