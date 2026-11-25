@@ -102,9 +102,10 @@
     font-size: 12px; font-weight: 600; background: var(--panel); color: var(--text);
   }
   select.status-select.st-not-started { background: var(--panel-raised); color: var(--text-muted); }
+  select.status-select.st-to-be-confirmed { background: var(--gold-soft); color: var(--gold-text); }
   select.status-select.st-in-progress { background: var(--blue-soft); color: var(--blue-text); }
+  select.status-select.st-on-hold { background: var(--red-soft); color: var(--red-text); }
   select.status-select.st-completed { background: var(--green-soft); color: var(--green-text); }
-  select.status-select.st-blocked { background: var(--red-soft); color: var(--red-text); }
 
   input.notes-input {
     width: 100%; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px;
@@ -143,9 +144,10 @@
 
   /* Bar colors mirror the status badge colors exactly */
   .bar.bar-not-started { background: var(--panel-raised); border: 1.5px solid var(--text-muted); color: var(--text-muted); }
+  .bar.bar-to-be-confirmed { background: var(--gold-soft); border: 1.5px solid var(--gold-text); color: var(--gold-text); }
   .bar.bar-in-progress { background: var(--blue-soft); border: 1.5px solid var(--blue); color: var(--blue-text); }
+  .bar.bar-on-hold { background: var(--red-soft); border: 1.5px solid var(--red-text); color: var(--red-text); }
   .bar.bar-completed { background: var(--green-soft); border: 1.5px solid var(--green-text); color: var(--green-text); }
-  .bar.bar-blocked { background: var(--red-soft); border: 1.5px solid var(--red-text); color: var(--red-text); }
 
   .footnote { margin-top: 14px; color: var(--text-muted); font-size: 12px; max-width: 80ch; }
   .footnote code { background: var(--panel-raised); padding: 1px 5px; border-radius: 4px; }
@@ -185,7 +187,7 @@
       <div class="lp-header">
         <div class="col-id">ID</div>
         <div class="col-task">Task</div>
-        <div class="col-owner">Owner</div>
+        <div class="col-owner">PIC</div>
         <div class="col-status">Status</div>
         <div class="col-notes">Notes</div>
       </div>
@@ -212,49 +214,58 @@
 
   const STATUS_OPTIONS = [
     { value: "not-started", label: "Not started" },
+    { value: "to-be-confirmed", label: "To be confirmed" },
     { value: "in-progress", label: "In progress" },
+    { value: "on-hold", label: "On hold" },
     { value: "completed", label: "Completed" },
-    { value: "blocked", label: "Blocked" },
   ];
 
   // ---- Data: one entry per visual row, in display order ----
   // type: "group" (stage header) or "task"
   const ROWS = [
     { type: "group", label: "Initiate" },
-    { type: "task", id: "01", task: "Plan charter scope, ownership and deadline", owner: "PM", start: "2026-11-20", end: "2026-11-24", status: "completed" },
+    { type: "task", id: "01", task: "Plan charter scope, ownership and deadline", owner: "PM", start: "2026-11-20", end: "2026-11-24", status: "Completed" },
 
     { type: "group", label: "Plan" },
-    { type: "task", id: "02", task: "Confirm automation build feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27", status: "in-progress" },
-    { type: "task", id: "03", task: "Confirm course migration feasible", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27", status: "in-progress" },
+    { type: "task", id: "02", task: "Confirm the automation build is feasible by the internal deadline", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27", status: "to-be-confirmed" },
+    { type: "task", id: "03", task: "Confirm course migration is feasible by the internal deadline", owner: "Training", start: "2026-11-23", end: "2026-11-27", status: "to-be-confirmed" },
 
-    { type: "group", label: "Create" },
-    { type: "task", id: "04", task: "Create LMS data/access structure", owner: "Operation", start: "2026-11-11", end: "2026-11-24", status: "completed" },
+    { type: "group", label: "Design" },
+    { type: "task", id: "04", task: "Design the LMS data/access structure (Panorama, sublicense, subscription)", owner: "Operation", start: "2026-11-11", end: "2026-11-24", status: "Completed" },
 
     { type: "group", label: "Build" },
-    { type: "task", id: "05", task: "Build domain-based segmentation automation + lookup table", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "in-progress" },
-    { type: "task", id: "06", task: "Build PayPro-to-TI purchase integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20" },
-    { type: "task", id: "07", task: "Build iframe integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20" },
-    { type: "task", id: "08", task: "Create new IPN URLs", owner: "MOP Automation Lead", start: "2026-12-14", end: "2026-12-20" },
-
-    { type: "group", label: "Data" },
-    { type: "task", id: "09", task: "Migrate historical certification data", owner: "Operation", start: "2026-12-07", end: "2026-12-20" },
-    { type: "task", id: "10", task: "Export Workramp user data", owner: "Operation", start: "2026-12-07", end: "2026-12-20" },
+    { type: "task", id: "05", task: "Build domain-based segmentation automation (signup, login) & lookup table", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "Not started" },
+    { type: "task", id: "06", task: "Build the PayPro-to-TI purchase integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "Not started" },
+    { type: "task", id: "07", task: "Build the iframe integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "Not started" },
+    { type: "task", id: "08", task: "Create new IPN URLs", owner: "MOP Automation Lead", start: "2026-12-14", end: "2026-12-20", status: "Not started" },
 
     { type: "group", label: "Content" },
-    { type: "task", id: "11", task: "Migrate course content into TI", owner: "Training", start: "2026-11-19", end: "2026-12-04", status: "in-progress" },
+    { type: "task", id: "09", task: "Export all course content, information, asset from WR", owner: "MOP Delivery Owner", start: "2026-11-19", end: "2026-11-27", status: "in-progress" },
+    { type: "task", id: "10", task: "Migrate course content, information, asset into TI", owner: "MOP Delivery Owner", start: "2026-11-24", end: "2026-12-04", status: "in-progress" },
 
-    { type: "group", label: "Launch" },
-    { type: "task", id: "12", task: "Switch PayPro IPN URLs", owner: "Operation", start: "2026-12-30", end: "2026-12-30", milestone: true },
-    { type: "task", id: "13", task: "Cut over to TI and retire Workramp", owner: "MOP Automation Lead", start: "2026-12-30", end: "2026-12-30", milestone: true },
+    { type: "group", label: "Data" },
+    { type: "task", id: "11", task: "Export Workramp user data before contract end", owner: "Operation", start: "2026-12-07", end: "2026-12-20", status: "Not started" },
+    { type: "task", id: "12", task: "Migrate historical certification data", owner: "Operation, TI", start: "2026-12-07", end: "2026-12-20", status: "on-hold" },
 
     { type: "group", label: "Validate" },
-    { type: "task", id: "14", task: "Test end-to-end flows", owner: "MOP Automation Lead", start: "2026-12-21", end: "2026-12-30" },
+    { type: "task", id: "13", task: "Test segmentation, purchase and access flows end to end", owner: "PM, MOP Automation Lead", start: "2026-12-21", end: "2026-12-30", status: "on-hold" },
 
     { type: "group", label: "Approve" },
-    { type: "task", id: "15", task: "Approve go-live readiness", owner: "MOP Delivery Owner", start: "2026-12-30", end: "2026-12-31" },
+    { type: "task", id: "14", task: "Approve go-live readiness", owner: "Approver", start: "2026-12-30", end: "2026-12-31", status: "on-hold" },
+
+    { type: "group", label: "Launch" },
+    { type: "task", id: "15", task: "Switch PayPro's IPN URLs from the old system to the new automation", owner: "Operation", start: "2026-12-31", end: "2026-12-31", milestone: true, status: "on-hold" },
+    { type: "task", id: "16", task: "Cut over to TI and retire Workramp", owner: "MOP Automation Lead", start: "2026-12-31", end: "2026-12-31", milestone: true, status: "on-hold" },
 
     { type: "group", label: "Change" },
-    { type: "task", id: "16", task: "Log/assess change requests", owner: "PM", start: "2026-11-20", end: "2027-01-02", ongoing: true, status: "in-progress" },
+    { type: "task", id: "17", task: "Log and assess requests to change scope, structure or deadline", owner: "PM", start: "2026-11-20", end: "2027-01-02", ongoing: true, status: "Ongoing" },
+  ];
+
+  // Task-to-task dependencies: {from, to} means `to` cannot start until `from` finishes
+  const DEPENDENCIES = [
+    { from: "10", to: "12" },
+    { from: "14", to: "15" },
+    { from: "14", to: "16" },
   ];
 
   const ROW_H = 44, GROUP_H = 28, HEADER_H = 38;
@@ -297,7 +308,7 @@
   const EDIT_MODE = new URLSearchParams(window.location.search).get("edit") === "1";
 
   function statusClass(v) {
-    return { "not-started": "st-not-started", "in-progress": "st-in-progress", "completed": "st-completed", "blocked": "st-blocked" }[v] || "st-not-started";
+    return { "not-started": "st-not-started", "to-be-confirmed": "st-to-be-confirmed", "in-progress": "st-in-progress", "on-hold": "st-on-hold", "completed": "st-completed" }[v] || "st-not-started";
   }
   function statusLabel(v) {
     const found = STATUS_OPTIONS.find(o => o.value === v);
@@ -365,6 +376,46 @@
     });
   }
 
+  function drawDependencies(rowPos, totalWidth, totalHeight) {
+    const old = document.getElementById("depSvg");
+    if (old) old.remove();
+    if (!DEPENDENCIES.length) return;
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.id = "depSvg";
+    svg.setAttribute("width", totalWidth);
+    svg.setAttribute("height", totalHeight);
+    svg.style.position = "absolute";
+    svg.style.left = "0";
+    svg.style.top = "0";
+    svg.style.pointerEvents = "none";
+    svg.style.zIndex = "3";
+
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    marker.innerHTML = `<marker id="depArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--red-text)"/></marker>`;
+    svg.appendChild(marker);
+
+    DEPENDENCIES.forEach(dep => {
+      const fromPos = rowPos[dep.from], toPos = rowPos[dep.to];
+      if (!fromPos || !toPos) return;
+      const x1 = fromPos.left + fromPos.width;
+      const y1 = fromPos.top + fromPos.height / 2;
+      const x2 = toPos.left;
+      const y2 = toPos.top + toPos.height / 2;
+      const midX = x1 + 16;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M${x1} ${y1} H${midX} V${y2} H${x2}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "var(--red-text)");
+      path.setAttribute("stroke-width", "1.75");
+      path.setAttribute("stroke-dasharray", "4 3");
+      path.setAttribute("marker-end", "url(#depArrow)");
+      svg.appendChild(path);
+    });
+
+    document.getElementById("rightRows").appendChild(svg);
+  }
+
   function buildRightPanel() {
     const lastRow = ROWS[ROWS.length - 1];
     const totalWidth = x(lastRow.end) + PX_PER_DAY * 10;
@@ -392,6 +443,7 @@
     rowsContainer.style.width = totalWidth + "px";
 
     let cumulativeTop = 0;
+    const rowPos = {};
     ROWS.forEach(row => {
       const h = row.type === "group" ? GROUP_H : ROW_H;
       const rowDiv = document.createElement("div");
@@ -408,6 +460,7 @@
       if (row.type === "task") {
         const left = x(row.start);
         const width = Math.max(x(row.end) - x(row.start), PX_PER_DAY);
+        rowPos[row.id] = { top: cumulativeTop, height: h, left, width };
         const bar = document.createElement("div");
         bar.id = "bar-" + row.id;
         const st = (state[row.id] && state[row.id].status) || row.status || "not-started";
@@ -426,6 +479,8 @@
       rowsContainer.appendChild(rowDiv);
       cumulativeTop += h;
     });
+
+    drawDependencies(rowPos, totalWidth, cumulativeTop);
 
     // Today marker
     const today = new Date();
