@@ -106,6 +106,7 @@
   select.status-select.st-in-progress { background: var(--blue-soft); color: var(--blue-text); }
   select.status-select.st-on-hold { background: var(--red-soft); color: var(--red-text); }
   select.status-select.st-completed { background: var(--green-soft); color: var(--green-text); }
+  select.status-select.st-ongoing { background: var(--purple-soft); color: var(--purple-text); }
 
   input.notes-input {
     width: 100%; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px;
@@ -148,6 +149,7 @@
   .bar.bar-in-progress { background: var(--blue-soft); border: 1.5px solid var(--blue); color: var(--blue-text); }
   .bar.bar-on-hold { background: var(--red-soft); border: 1.5px solid var(--red-text); color: var(--red-text); }
   .bar.bar-completed { background: var(--green-soft); border: 1.5px solid var(--green-text); color: var(--green-text); }
+  .bar.bar-ongoing { background: var(--purple-soft); border: 1.5px solid var(--purple-text); color: var(--purple-text); }
 
   .footnote { margin-top: 14px; color: var(--text-muted); font-size: 12px; max-width: 80ch; }
   .footnote code { background: var(--panel-raised); padding: 1px 5px; border-radius: 4px; }
@@ -218,33 +220,34 @@
     { value: "in-progress", label: "In progress" },
     { value: "on-hold", label: "On hold" },
     { value: "completed", label: "Completed" },
+    { value: "ongoing", label: "Ongoing" },
   ];
 
   // ---- Data: one entry per visual row, in display order ----
   // type: "group" (stage header) or "task"
   const ROWS = [
     { type: "group", label: "Initiate" },
-    { type: "task", id: "01", task: "Plan charter scope, ownership and deadline", owner: "PM", start: "2026-11-20", end: "2026-11-24", status: "Completed" },
+    { type: "task", id: "01", task: "Planning charter scope, ownership and deadline", owner: "PM", start: "2026-11-20", end: "2026-11-24", status: "completed" },
 
     { type: "group", label: "Plan" },
     { type: "task", id: "02", task: "Confirm the automation build is feasible by the internal deadline", owner: "MOP Delivery Owner", start: "2026-11-23", end: "2026-11-27", status: "to-be-confirmed" },
     { type: "task", id: "03", task: "Confirm course migration is feasible by the internal deadline", owner: "Training", start: "2026-11-23", end: "2026-11-27", status: "to-be-confirmed" },
 
     { type: "group", label: "Design" },
-    { type: "task", id: "04", task: "Design the LMS data/access structure (Panorama, sublicense, subscription)", owner: "Operation", start: "2026-11-11", end: "2026-11-24", status: "Completed" },
+    { type: "task", id: "04", task: "Design the LMS data/access structure (Panorama, sublicense, subscription)", owner: "Operation", start: "2026-11-11", end: "2026-11-24", status: "completed" },
 
     { type: "group", label: "Build" },
-    { type: "task", id: "05", task: "Build domain-based segmentation automation (signup, login) & lookup table", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "Not started" },
-    { type: "task", id: "06", task: "Build the PayPro-to-TI purchase integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "Not started" },
-    { type: "task", id: "07", task: "Build the iframe integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "Not started" },
-    { type: "task", id: "08", task: "Create new IPN URLs", owner: "MOP Automation Lead", start: "2026-12-14", end: "2026-12-20", status: "Not started" },
+    { type: "task", id: "05", task: "Build domain-based segmentation automation (signup, login) & lookup table", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "not-started" },
+    { type: "task", id: "06", task: "Build the PayPro-to-TI purchase integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "not-started" },
+    { type: "task", id: "07", task: "Build the iframe integration", owner: "MOP Automation Lead", start: "2026-11-26", end: "2026-12-20", status: "not-started" },
+    { type: "task", id: "08", task: "Create new IPN URLs", owner: "MOP Automation Lead", start: "2026-12-14", end: "2026-12-20", status: "not-started" },
 
     { type: "group", label: "Content" },
     { type: "task", id: "09", task: "Export all course content, information, asset from WR", owner: "MOP Delivery Owner", start: "2026-11-19", end: "2026-11-27", status: "in-progress" },
     { type: "task", id: "10", task: "Migrate course content, information, asset into TI", owner: "MOP Delivery Owner", start: "2026-11-24", end: "2026-12-04", status: "in-progress" },
 
     { type: "group", label: "Data" },
-    { type: "task", id: "11", task: "Export Workramp user data before contract end", owner: "Operation", start: "2026-12-07", end: "2026-12-20", status: "Not started" },
+    { type: "task", id: "11", task: "Export Workramp user data before contract end", owner: "Operation", start: "2026-12-07", end: "2026-12-20", status: "not-started" },
     { type: "task", id: "12", task: "Migrate historical certification data", owner: "Operation, TI", start: "2026-12-07", end: "2026-12-20", status: "on-hold" },
 
     { type: "group", label: "Validate" },
@@ -258,7 +261,7 @@
     { type: "task", id: "16", task: "Cut over to TI and retire Workramp", owner: "MOP Automation Lead", start: "2026-12-31", end: "2026-12-31", milestone: true, status: "on-hold" },
 
     { type: "group", label: "Change" },
-    { type: "task", id: "17", task: "Log and assess requests to change scope, structure or deadline", owner: "PM", start: "2026-11-20", end: "2027-01-02", ongoing: true, status: "Ongoing" },
+    { type: "task", id: "17", task: "Log and assess requests to change scope, structure or deadline", owner: "PM", start: "2026-11-20", end: "2027-01-02", ongoing: true, status: "ongoing" },
   ];
 
   // Task-to-task dependencies: {from, to} means `to` cannot start until `from` finishes
@@ -308,7 +311,7 @@
   const EDIT_MODE = new URLSearchParams(window.location.search).get("edit") === "1";
 
   function statusClass(v) {
-    return { "not-started": "st-not-started", "to-be-confirmed": "st-to-be-confirmed", "in-progress": "st-in-progress", "on-hold": "st-on-hold", "completed": "st-completed" }[v] || "st-not-started";
+    return { "not-started": "st-not-started", "to-be-confirmed": "st-to-be-confirmed", "in-progress": "st-in-progress", "on-hold": "st-on-hold", "completed": "st-completed", "ongoing": "st-ongoing" }[v] || "st-not-started";
   }
   function statusLabel(v) {
     const found = STATUS_OPTIONS.find(o => o.value === v);
