@@ -132,17 +132,20 @@
 
   .bar {
     position: absolute; top: 9px; height: 26px; border-radius: 6px;
-    background: var(--blue-soft); border: 1.5px solid var(--blue); 
     display: flex; align-items: center; padding: 0 8px;
-    font-size: 11px; font-weight: 600; color: var(--blue-text);
+    font-size: 11px; font-weight: 600;
     white-space: nowrap; overflow: hidden;
   }
   .bar.milestone {
     width: 16px !important; height: 16px; top: 14px; border-radius: 4px;
-    transform: rotate(45deg); background: var(--gold-soft); border-color: var(--gold-text);
-    padding: 0;
+    transform: rotate(45deg); padding: 0;
   }
-  .bar.ongoing { background: var(--purple-soft); border-color: var(--purple-text); color: var(--purple-text); }
+
+  /* Bar colors mirror the status badge colors exactly */
+  .bar.bar-not-started { background: var(--panel-raised); border: 1.5px solid var(--text-muted); color: var(--text-muted); }
+  .bar.bar-in-progress { background: var(--blue-soft); border: 1.5px solid var(--blue); color: var(--blue-text); }
+  .bar.bar-completed { background: var(--green-soft); border: 1.5px solid var(--green-text); color: var(--green-text); }
+  .bar.bar-blocked { background: var(--red-soft); border: 1.5px solid var(--red-text); color: var(--red-text); }
 
   .footnote { margin-top: 14px; color: var(--text-muted); font-size: 12px; max-width: 80ch; }
   .footnote code { background: var(--panel-raised); padding: 1px 5px; border-radius: 4px; }
@@ -345,6 +348,11 @@
         state[id].status = sel.value;
         sel.className = "status-select " + statusClass(sel.value);
         saveState(state);
+        const bar = document.getElementById("bar-" + id);
+        if (bar) {
+          const isMilestone = bar.classList.contains("milestone");
+          bar.className = "bar bar-" + sel.value + (isMilestone ? " milestone" : "");
+        }
       });
     });
     container.querySelectorAll(".notes-input").forEach(inp => {
@@ -401,7 +409,9 @@
         const left = x(row.start);
         const width = Math.max(x(row.end) - x(row.start), PX_PER_DAY);
         const bar = document.createElement("div");
-        bar.className = "bar" + (row.milestone ? " milestone" : "") + (row.ongoing ? " ongoing" : "");
+        bar.id = "bar-" + row.id;
+        const st = (state[row.id] && state[row.id].status) || row.status || "not-started";
+        bar.className = "bar bar-" + st + (row.milestone ? " milestone" : "");
         if (row.milestone) {
           bar.style.left = (left + width / 2 - 8) + "px";
         } else {
